@@ -13,6 +13,8 @@
 
 {{- $meta := slice -}}
 
+{{- $height := .Get "height" | default "" -}}
+
 {{- range $i, $item := $items }}
 	{{- $src := $item.src | default $item.Src -}}
 	{{- if not $src }}
@@ -47,7 +49,7 @@
 {{- $metaJSONString := $metaJSON | jsonify -}}
 {{- $id := printf "strip-gallery-%d" now.UnixNano -}}
 
-<section id="{{ $id }}" class="strip-gallery" data-strip-gallery data-strip-gallery-meta='{{ $metaJSONString | safeHTMLAttr }}'>
+<section id="{{ $id }}" class="strip-gallery" data-strip-gallery data-strip-gallery-meta='{{ $metaJSONString | safeHTMLAttr }}'{{ if $height }} style="--strip-gallery-height: {{ $height }};"{{ end }}>
 	<div class="strip-gallery__inner">
 
 		<aside class="strip-gallery__sidebar">
