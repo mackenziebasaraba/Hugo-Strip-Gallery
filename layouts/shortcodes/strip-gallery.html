@@ -1,0 +1,81 @@
+{{- $raw := .Inner | strings.TrimSpace -}}
+{{- if not $raw }}
+	{{- errorf "strip-gallery: shortcode body must contain JSON" -}}
+{{- end }}
+
+{{- $items := transform.Unmarshal $raw -}}
+{{- if lt (len $items) 1 }}
+	{{- errorf "strip-gallery: shortcode requires a non-empty JSON array" -}}
+{{- end }}
+
+{{- $page := .Page -}}
+{{- $total := len $items -}}
+
+{{- $meta := slice -}}
+
+{{- range $i, $item := $items }}
+	{{- $src := $item.src | default $item.Src -}}
+	{{- if not $src }}
+		{{- errorf "strip-gallery: item %d missing src" $i -}}
+	{{- end }}
+
+	{{- $orig := $page.Resources.GetMatch $src -}}
+	{{- if not $orig }}
+		{{- errorf "strip-gallery: resource %q not found in page bundle" $src -}}
+	{{- end }}
+
+	{{- $meta = $meta | append (dict
+		"index"    $i
+		"name"     $src
+		"orig"     $orig
+		"alt"      ($item.alt | default "")
+		"caption"  ($item.caption | default "")
+	) -}}
+{{- end }}
+
+{{- $metaJSON := slice -}}
+{{- range $meta }}
+	{{- $metaJSON = $metaJSON | append (dict
+		"index"            .index
+		"src"              (.orig.RelPermalink)
+		"alt"              .alt
+		"caption"          .caption
+		"captionRendered"  (.caption | markdownify)
+	) -}}
+{{- end }}
+
+{{- $metaJSONString := $metaJSON | jsonify -}}
+{{- $id := printf "strip-gallery-%d" now.UnixNano -}}
+
+<section id="{{ $id }}" class="strip-gallery" data-strip-gallery data-strip-gallery-meta='{{ $metaJSONString | safeHTMLAttr }}'>
+	<div class="strip-gallery__inner">
+
+		<aside class="strip-gallery__sidebar">
+			<div class="strip-gallery__counter" data-strip-gallery-counter>
+				1 of {{ $total }}
+			</div>
+			<div class="strip-gallery__caption" data-strip-gallery-caption>
+				{{ with index $items 0 }}{{ .caption | markdownify }}{{ end }}
+			</div>
+			<div class="strip-gallery__controls">
+				<button type="button" class="strip-gallery__button" data-strip-gallery-prev>Prev</button>
+				<button type="button" class="strip-gallery__button" data-strip-gallery-next>Next</button>
+			</div>
+		</aside>
+
+		<div class="strip-gallery__track-outer">
+			<div class="strip-gallery__track" data-strip-gallery-track>
+				{{- range $meta }}
+					{{- $orig := .orig -}}
+					{{- $resized := $orig.Resize "x600" -}}
+					<figure class="strip-gallery__item{{ if eq .index 0 }} is-active{{ end }}" data-strip-gallery-index="{{ .index }}">
+						<a href="{{ $orig.RelPermalink }}" target="_blank">
+							<img src="{{ $resized.RelPermalink }}" width="{{ $resized.Width }}" height="{{ $resized.Height }}" loading="lazy" alt="{{ .alt | plainify }}" data-index="{{ .index }}">
+						</a>
+					</figure>
+				{{- end }}
+			</div>
+		</div>
+
+	</div>
+</section>
