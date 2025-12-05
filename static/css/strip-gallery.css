@@ -47,6 +47,8 @@
 .strip-gallery__item img {
   width: 100%;
   height: auto;
+  max-height: var(--strip-gallery-height, min(50vh, 600px));
+  object-fit: contain;
   display: block;
 }
 
@@ -84,5 +86,9 @@
   .strip-gallery__counter,
   .strip-gallery__caption {
     width: 100%;
+  }
+
+  .strip-gallery__item img {
+    max-height: var(--strip-gallery-height, min(30vh, 600px));
   }
 }
