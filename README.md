@@ -1,5 +1,3 @@
-# Hugo-Strip-Gallery
-
 **Hugo Strip Gallery** is a simple strip gallery shortcode.
 
 ![A demo of the shortcode](docs/demo.png)
